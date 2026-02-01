@@ -102,6 +102,10 @@ If you want to split the clips, but don't want auto-editor to do any more editin
 auto-editor example.mp4 --when-silent nil --when-normal nil --export premiere
 ```
 
+### DaVinci Resolve Scripted GUI
+
+If you want a lightweight Resolve GUI, this repo includes a Resolve script (installed via the scripting folder) that calls the Auto-Editor CLI and imports the generated timeline into Resolve. See [DaVinci Resolve Studio 20 Scripted GUI](docs/resolve-plugin.md) for installation and usage details.
+
 <h2 align="center">Manual Editing</h2>
 
 Use the `--cut-out` option to always remove a section.
