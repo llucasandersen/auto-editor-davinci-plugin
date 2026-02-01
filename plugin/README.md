@@ -1,6 +1,6 @@
 # Auto-Editor Workflow Integration Plugin (DaVinci Resolve)
 
-This folder contains the source for an **official Workflow Integration plugin** that recreates the Resolve scripted GUI using the Blackmagic Design Workflow Integration SDK. The plugin runs the Auto-Editor CLI and imports the generated Resolve timeline via the Workflow Integration bridge.
+This folder contains the source for an **official Workflow Integration plugin** for DaVinci Resolve Studio, built with the Blackmagic Design Workflow Integration SDK. The plugin is **fully GUI-based and intended to be intuitive to use inside Resolve**, while it runs the Auto-Editor CLI in the background and imports the generated Resolve timeline via the Workflow Integration bridge.
 
 > **SDK Required**: The Blackmagic DaVinci Resolve Studio Developer/Workflow Integration SDK is not included in this repo. Download it from Blackmagic Design and point this project at the SDK using environment variables as described below.
 
@@ -53,7 +53,12 @@ Resulting path example:
 .../Workflow Integration Plugins/com.autoeditor.workflowintegration/
 ```
 
-Restart Resolve, then open **Workspace → Workflow Integrations → Auto-Editor**.
+Restart Resolve Studio, then open **Workspace → Workflow Integrations → Auto-Editor** to launch the plugin GUI.
+
+## User Experience
+
+- **Intuitive, GUI-first workflow**: All controls are presented in the Resolve UI; no manual command-line steps are required during use.
+- **Launchable in Resolve Studio**: The plugin appears under **Workspace → Workflow Integrations** once installed, and runs entirely inside Resolve Studio.
 
 ## Troubleshooting
 
