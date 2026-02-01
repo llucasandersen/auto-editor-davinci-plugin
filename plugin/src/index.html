@@ -64,8 +64,19 @@
 
           <div id="panel-advanced" class="tabpanel" role="tabpanel">
             <p class="hint">
-              Any CLI arguments are supported here. These are appended to the basic options.
+              Every Auto-Editor flag is available below. Options are appended to the basic settings.
             </p>
+            <label class="field">
+              <span>Export mode override (--export)</span>
+              <input id="exportOverride" type="text" placeholder='resolve:name="Auto-Editor Timeline"' />
+              <small class="field__hint">Leave blank to use the timeline name above.</small>
+            </label>
+            <label class="field">
+              <span>Output path override (--output)</span>
+              <input id="outputOverride" type="text" placeholder="/path/to/output.fcpxml" />
+              <small class="field__hint">Optional. Defaults to a temp .fcpxml file for Resolve import.</small>
+            </label>
+            <div id="cli-options" class="cli-options"></div>
             <label class="field">
               <span>Extra CLI args</span>
               <input id="args" type="text" placeholder="--export resolve --edit motion:threshold=0.02" />
