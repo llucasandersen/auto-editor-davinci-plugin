@@ -23,6 +23,9 @@ const elements = {
   whenNormal: document.getElementById("whenNormal"),
   cutOut: document.getElementById("cutOut"),
   addIn: document.getElementById("addIn"),
+  exportOverride: document.getElementById("exportOverride"),
+  outputOverride: document.getElementById("outputOverride"),
+  cliOptions: document.getElementById("cli-options"),
   args: document.getElementById("args"),
   preview: document.getElementById("preview"),
   status: document.getElementById("status"),
@@ -39,10 +42,142 @@ const elements = {
 };
 
 let clipEntries = [];
+let cliOptionFields = [];
+
+const cliOptionSections = [
+  {
+    title: "Editing options",
+    options: [
+      { id: "silentSpeed", label: "Silent speed (--silent-speed)", flag: "--silent-speed", type: "value", placeholder: "8" },
+      { id: "videoSpeed", label: "Video speed (--video-speed)", flag: "--video-speed", type: "value", placeholder: "1" },
+      { id: "setSpeed", label: "Set speed for range (--set-speed-for-range)", flag: "--set-speed-for-range", type: "value", placeholder: "2,0,30" },
+    ],
+  },
+  {
+    title: "Timeline options",
+    options: [
+      { id: "frameRate", label: "Frame rate (--frame-rate)", flag: "--frame-rate", type: "value", placeholder: "24" },
+      { id: "sampleRate", label: "Sample rate (--sample-rate)", flag: "--sample-rate", type: "value", placeholder: "48000" },
+      { id: "resolution", label: "Resolution (--resolution)", flag: "--resolution", type: "value", placeholder: "1920,1080" },
+      { id: "background", label: "Background (--background)", flag: "--background", type: "value", placeholder: "#000000" },
+    ],
+  },
+  {
+    title: "URL download options",
+    options: [
+      { id: "ytDlpLocation", label: "yt-dlp location (--yt-dlp-location)", flag: "--yt-dlp-location", type: "value", placeholder: "/usr/local/bin/yt-dlp" },
+      { id: "downloadFormat", label: "Download format (--download-format)", flag: "--download-format", type: "value", placeholder: "bestvideo+bestaudio" },
+      { id: "outputFormat", label: "Output format (--output-format)", flag: "--output-format", type: "value", placeholder: "%(title)s.%(ext)s" },
+      { id: "ytDlpExtras", label: "yt-dlp extras (--yt-dlp-extras)", flag: "--yt-dlp-extras", type: "value", placeholder: "--cookies cookies.txt" },
+    ],
+  },
+  {
+    title: "Display options",
+    options: [
+      { id: "progress", label: "Progress (--progress)", flag: "--progress", type: "value", placeholder: "bar" },
+      { id: "debug", label: "Debug (--debug)", flag: "--debug", type: "boolean" },
+      { id: "quiet", label: "Quiet (--quiet)", flag: "--quiet", type: "boolean" },
+      { id: "preview", label: "Preview (--preview)", flag: "--preview", type: "boolean" },
+    ],
+  },
+  {
+    title: "Container settings",
+    options: [
+      { id: "disableSubtitles", label: "Disable subtitles (-sn)", flag: "-sn", type: "boolean" },
+      { id: "disableData", label: "Disable data streams (-dn)", flag: "-dn", type: "boolean" },
+      { id: "faststart", label: "Faststart (--faststart)", flag: "--faststart", type: "boolean" },
+      { id: "noFaststart", label: "No faststart (--no-faststart)", flag: "--no-faststart", type: "boolean" },
+      { id: "fragmented", label: "Fragmented (--fragmented)", flag: "--fragmented", type: "boolean" },
+      { id: "noFragmented", label: "No fragmented (--no-fragmented)", flag: "--no-fragmented", type: "boolean" },
+    ],
+  },
+  {
+    title: "Video rendering",
+    options: [
+      { id: "videoCodec", label: "Video codec (--video-codec)", flag: "--video-codec", type: "value", placeholder: "h264" },
+      { id: "videoBitrate", label: "Video bitrate (--video-bitrate)", flag: "--video-bitrate", type: "value", placeholder: "5M" },
+      { id: "videoProfile", label: "Video profile (-vprofile)", flag: "-vprofile", type: "value", placeholder: "high" },
+      { id: "scale", label: "Scale (--scale)", flag: "--scale", type: "value", placeholder: "0.5" },
+      { id: "noSeek", label: "No seek (--no-seek)", flag: "--no-seek", type: "boolean" },
+    ],
+  },
+  {
+    title: "Audio rendering",
+    options: [
+      { id: "audioCodec", label: "Audio codec (--audio-codec)", flag: "--audio-codec", type: "value", placeholder: "aac" },
+      { id: "audioLayout", label: "Audio layout (--audio-layout)", flag: "--audio-layout", type: "value", placeholder: "stereo" },
+      { id: "audioBitrate", label: "Audio bitrate (--audio-bitrate)", flag: "--audio-bitrate", type: "value", placeholder: "192k" },
+      { id: "mixAudio", label: "Mix audio streams (--mix-audio-streams)", flag: "--mix-audio-streams", type: "boolean" },
+      { id: "keepTracksSeparate", label: "Keep tracks separate (--keep-tracks-separate)", flag: "--keep-tracks-separate", type: "boolean" },
+      { id: "audioNormalize", label: "Audio normalize (--audio-normalize)", flag: "--audio-normalize", type: "value", placeholder: "ebu:i=-16" },
+    ],
+  },
+  {
+    title: "Miscellaneous",
+    options: [
+      { id: "noCache", label: "No cache (--no-cache)", flag: "--no-cache", type: "boolean" },
+      { id: "noOpen", label: "No open (--no-open)", flag: "--no-open", type: "boolean" },
+      { id: "tempDir", label: "Temp dir (--temp-dir)", flag: "--temp-dir", type: "value", placeholder: "/tmp/auto-editor" },
+      { id: "player", label: "Player (--player)", flag: "--player", type: "value", placeholder: "vlc" },
+      { id: "version", label: "Version (--version)", flag: "--version", type: "boolean" },
+    ],
+  },
+];
 
 const setStatus = (message) => {
   elements.status.textContent = message;
 };
+
+const renderCliOptions = () => {
+  elements.cliOptions.innerHTML = "";
+  cliOptionFields = [];
+
+  cliOptionSections.forEach((section) => {
+    const sectionWrapper = document.createElement("div");
+    sectionWrapper.className = "option-section";
+    const heading = document.createElement("h3");
+    heading.textContent = section.title;
+    heading.className = "option-section__title";
+    sectionWrapper.appendChild(heading);
+
+    const grid = document.createElement("div");
+    grid.className = "option-grid";
+
+    section.options.forEach((option) => {
+      const label = document.createElement("label");
+      label.className = option.type === "boolean" ? "field field--checkbox" : "field";
+
+      const span = document.createElement("span");
+      span.textContent = option.label;
+      label.appendChild(span);
+
+      const input = document.createElement("input");
+      input.id = `cli-${option.id}`;
+      input.type = option.type === "boolean" ? "checkbox" : "text";
+      if (option.placeholder) {
+        input.placeholder = option.placeholder;
+      }
+      label.appendChild(input);
+
+      grid.appendChild(label);
+      cliOptionFields.push({ option, input });
+    });
+
+    sectionWrapper.appendChild(grid);
+    elements.cliOptions.appendChild(sectionWrapper);
+  });
+};
+
+const collectAdvancedOptions = () =>
+  cliOptionFields
+    .map(({ option, input }) => {
+      if (option.type === "boolean") {
+        return input.checked ? { flag: option.flag, hasValue: false } : null;
+      }
+      const value = input.value.trim();
+      return value ? { flag: option.flag, value, hasValue: true } : null;
+    })
+    .filter(Boolean);
 
 const currentArgs = () =>
   buildAutoEditorArgs({
@@ -52,6 +187,7 @@ const currentArgs = () =>
     whenNormal: elements.whenNormal.value.trim(),
     cutOut: elements.cutOut.value.trim(),
     addIn: elements.addIn.value.trim(),
+    advancedOptions: collectAdvancedOptions(),
     extraArgs: elements.args.value.trim(),
   });
 
@@ -60,6 +196,8 @@ const updatePreview = () => {
   const preview = buildPreviewCommand({
     clipLabel: elements.clip.value,
     timelineName: elements.timeline.value || "Auto-Editor Timeline",
+    exportOverride: elements.exportOverride.value.trim(),
+    outputOverride: elements.outputOverride.value.trim(),
     args,
   });
   elements.preview.value = preview;
@@ -101,11 +239,13 @@ const handleRun = async () => {
     const clipPath = getClipFilePath(selected.clip);
     const args = currentArgs();
     const timelineName = elements.timeline.value || "Auto-Editor Timeline";
-    const outputPath = await getTempFilePath("fcpxml");
+    const outputOverride = elements.outputOverride.value.trim();
+    const outputPath = outputOverride || await getTempFilePath("fcpxml");
     const command = buildAutoEditorCommand({
       clipPath,
       timelineName,
       outputPath,
+      exportOverride: elements.exportOverride.value.trim(),
       args,
     });
 
@@ -174,13 +314,17 @@ const bindEvents = () => {
     elements.whenNormal,
     elements.cutOut,
     elements.addIn,
+    elements.exportOverride,
+    elements.outputOverride,
     elements.args,
+    ...cliOptionFields.map(({ input }) => input),
   ].forEach((input) => input.addEventListener("input", updatePreview));
 
   elements.tabBasic.addEventListener("click", () => handleTabSwitch("basic"));
   elements.tabAdvanced.addEventListener("click", () => handleTabSwitch("advanced"));
 };
 
+renderCliOptions();
 bindEvents();
 refreshClips();
 updatePreview();
