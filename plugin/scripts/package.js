@@ -5,8 +5,13 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pluginDir = path.resolve(__dirname, "..");
-const distDir = path.resolve(pluginDir, "dist", "com.autoeditor.workflowintegration");
-const outputZip = path.resolve(pluginDir, "dist", "auto-editor-workflow-plugin.zip");
+const pluginFolderName = "com.autoeditor.workflowintegration";
+const distDir = path.resolve(pluginDir, "dist", pluginFolderName);
+const outputZip = path.resolve(
+  pluginDir,
+  "dist",
+  `${pluginFolderName}-win.zip`,
+);
 
 const run = (command) => {
   execSync(command, { stdio: "inherit", cwd: pluginDir });

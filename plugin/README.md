@@ -1,36 +1,18 @@
 # Auto-Editor Workflow Integration Plugin (DaVinci Resolve)
 
-This folder contains the source for an **official Workflow Integration plugin** for DaVinci Resolve Studio, built with the Blackmagic Design Workflow Integration SDK. The plugin is **fully GUI-based and intended to be intuitive to use inside Resolve**, while it runs the Auto-Editor CLI in the background and imports the generated Resolve timeline via the Workflow Integration bridge.
-
-> **SDK Required**: The Blackmagic DaVinci Resolve Studio Developer/Workflow Integration SDK is not included in this repo. Download it from Blackmagic Design and point this project at the SDK using environment variables as described below.
+This folder contains the source for an **official Workflow Integration plugin** for DaVinci Resolve Studio. The plugin is **fully GUI-based and intended to be intuitive to use inside Resolve**, while it runs the Auto-Editor CLI in the background and imports the generated Resolve timeline via the Workflow Integration bridge.
 
 ## Prerequisites
 
 - DaVinci Resolve **Studio** (Workflow Integrations require Studio).
-- The Workflow Integration SDK from Blackmagic Design.
 - Auto-Editor installed and available on your PATH.
-
-## SDK Setup
-
-Set one of the following environment variables to point at the SDK:
-
-- `RESOLVE_SDK_DIR`: Path to the SDK root.
-- `RESOLVE_SDK_SAMPLE_DIR`: Path to the **Workflow Integration sample plugin** directory (preferred).
-
-The build script will copy the official sample structure into `plugin/dist/com.autoeditor.workflowintegration/` and then overlay the Auto-Editor UI/logic from `plugin/src/`.
-
-> The build intentionally **skips SDK headers and binaries** (`.h`, `.lib`, `.dll`, `.dylib`, etc.) to avoid committing SDK artifacts.
-> The `PluginInfo.json` in `plugin/src/` is a placeholder and should be replaced/overwritten by the SDK sample manifest if it differs.
 
 ## Build
 
 ```bash
 cd plugin
-npm install
 npm run build
 ```
-
-If the SDK sample is not found, the build will still succeed but only Auto-Editor files will be copied. Provide `RESOLVE_SDK_DIR` or `RESOLVE_SDK_SAMPLE_DIR` to include the official template files.
 
 ## Package
 
@@ -38,7 +20,7 @@ If the SDK sample is not found, the build will still succeed but only Auto-Edito
 npm run package
 ```
 
-This creates `plugin/dist/auto-editor-workflow-plugin.zip`.
+This creates `plugin/dist/com.autoeditor.workflowintegration-win.zip`.
 
 ## Install
 
@@ -62,10 +44,10 @@ Restart Resolve Studio, then open **Workspace → Workflow Integrations → Auto
 
 ## Troubleshooting
 
-- **Plugin not showing**: Confirm Resolve Studio is installed, and the plugin folder is inside the correct Workflow Integration Plugins directory. Ensure the SDK sample files are present (manifest, plugin info, etc.).
+- **Plugin not showing**: Confirm Resolve Studio is installed, and the plugin folder is inside the correct Workflow Integration Plugins directory. Ensure the `manifest.xml` exists in the plugin folder.
 - **Permissions errors**: On macOS, grant Resolve full disk access if Auto-Editor cannot read files.
 - **Auto-Editor fails to run**: Confirm `auto-editor` is on your PATH and accessible from Resolve. Try running the command printed in the command preview.
-- **Bridge errors**: The JS bridge expects the SDK to inject `resolve` and `workflowIntegration` objects. Verify that the official sample files are present and compatible with your Resolve version.
+- **Bridge errors**: The JS bridge expects Resolve Studio to inject `resolve` and `workflowIntegration` objects. Verify that Workflow Integrations are enabled and compatible with your Resolve version.
 
 ## Source Layout
 
