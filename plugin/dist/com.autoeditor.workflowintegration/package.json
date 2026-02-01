@@ -1,0 +1,6 @@
+{
+  "name": "com.autoeditor.workflowintegration",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Auto-Editor Workflow Integration plugin for DaVinci Resolve Studio."
+}

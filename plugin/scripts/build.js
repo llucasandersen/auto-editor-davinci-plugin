@@ -7,6 +7,7 @@ const pluginDir = path.resolve(__dirname, "..");
 const srcDir = path.resolve(pluginDir, "src");
 const pluginFolderName = "com.autoeditor.workflowintegration";
 const pluginName = "Auto-Editor";
+const pluginVersion = "1.0.0";
 const distDir = path.resolve(pluginDir, "dist", pluginFolderName);
 
 const ensureDir = async (dir) => {
@@ -43,7 +44,7 @@ const writeManifest = async () => {
 <manifest>
   <id>${pluginFolderName}</id>
   <name>${pluginName}</name>
-  <version>0.1.0</version>
+  <version>${pluginVersion}</version>
   <ui>
     <html>index.html</html>
     <script>main.js</script>
@@ -56,7 +57,7 @@ const writeManifest = async () => {
 const writePackageJson = async () => {
   const packageJson = {
     name: pluginFolderName,
-    version: "0.1.0",
+    version: pluginVersion,
     private: true,
     description: "Auto-Editor Workflow Integration plugin for DaVinci Resolve Studio.",
   };

@@ -1,6 +1,6 @@
 # DaVinci Resolve Studio 20 Scripted GUI
 
-This repository includes a Resolve **script** (not a compiled/plugin bundle) that wraps the Auto-Editor CLI with a small GUI. The script lets you select a Media Pool clip, configure Auto-Editor arguments, and import the generated Resolve timeline back into your project.
+This repository includes a Resolve **script** (not a compiled plugin bundle) that wraps the Auto-Editor CLI with a small GUI. The script lets you select a Media Pool clip, configure Auto-Editor arguments, and import the generated Resolve timeline back into your project.
 
 ## Install the Script Manually
 
@@ -14,7 +14,7 @@ This repository includes a Resolve **script** (not a compiled/plugin bundle) tha
 ## Usage
 
 1. Open a project and ensure the target clip is in the Media Pool root.
-2. Run **Workspace → Scripts → Utility → AutoEditor**.
+2. Run **Workspace -> Scripts -> Utility -> AutoEditor**.
 3. Use the **Basic** tab for common options (edit method, margin, add-in/cut-out, etc.).
 4. Use the **Advanced** tab to append any additional Auto-Editor CLI flags (full CLI coverage).
 5. Click **Create Timeline** to generate and import the timeline.

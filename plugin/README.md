@@ -1,23 +1,31 @@
-# Auto-Editor Workflow Integration Plugin (DaVinci Resolve)
+# Auto-Editor Workflow Integration Plugin (DaVinci Resolve Studio 20)
 
-This folder contains the source for an **official Workflow Integration plugin** for DaVinci Resolve Studio. The plugin is **fully GUI-based and intended to be intuitive to use inside Resolve**, while it runs the Auto-Editor CLI in the background and imports the generated Resolve timeline via the Workflow Integration bridge.
+This folder contains the **Workflow Integration plugin** that adds a dedicated Auto-Editor tab inside DaVinci Resolve Studio 20. The plugin runs the Auto-Editor CLI behind the scenes, then imports the generated Resolve timeline directly into your project.
 
-## Prerequisites
+## Highlights
 
-- DaVinci Resolve **Studio** (Workflow Integrations require Studio).
-- Auto-Editor installed and available on your PATH.
+- **GUI-first workflow** with a guided edit builder + advanced options
+- **Full CLI coverage** via the Advanced tab and extra-args field
+- **Command preview** to audit exactly what will run
+- **Timeline import + render helper** buttons built in
+
+## Requirements
+
+- DaVinci Resolve **Studio 20** (Workflow Integrations are Studio-only)
+- Auto-Editor installed and available on your PATH (or set a custom executable path in the UI)
 
 ## Build
 
 ```bash
 cd plugin
-npm run build
+node scripts/build.js
 ```
 
-## Package
+## Package (Windows zip)
 
 ```bash
-npm run package
+cd plugin
+node scripts/package.js
 ```
 
 This creates `plugin/dist/com.autoeditor.workflowintegration-win.zip`.
@@ -35,25 +43,10 @@ Resulting path example:
 .../Workflow Integration Plugins/com.autoeditor.workflowintegration/
 ```
 
-Restart Resolve Studio, then open **Workspace → Workflow Integrations → Auto-Editor** to launch the plugin GUI.
-
-## User Experience
-
-- **Intuitive, GUI-first workflow**: All controls are presented in the Resolve UI; no manual command-line steps are required during use.
-- **Launchable in Resolve Studio**: The plugin appears under **Workspace → Workflow Integrations** once installed, and runs entirely inside Resolve Studio.
+Restart Resolve Studio, then open **Workspace -> Workflow Integrations -> Auto-Editor** to launch the plugin GUI.
 
 ## Troubleshooting
 
 - **Plugin not showing**: Confirm Resolve Studio is installed, and the plugin folder is inside the correct Workflow Integration Plugins directory. Ensure the `manifest.xml` exists in the plugin folder.
-- **Permissions errors**: On macOS, grant Resolve full disk access if Auto-Editor cannot read files.
-- **Auto-Editor fails to run**: Confirm `auto-editor` is on your PATH and accessible from Resolve. Try running the command printed in the command preview.
-- **Bridge errors**: The JS bridge expects Resolve Studio to inject `resolve` and `workflowIntegration` objects. Verify that Workflow Integrations are enabled and compatible with your Resolve version.
-
-## Source Layout
-
-```
-plugin/
-  src/              # Auto-Editor UI + JS logic
-  dist/             # Built plugin output (com.autoeditor.workflowintegration)
-  scripts/          # Build/package helpers
-```
+- **Auto-Editor fails to run**: Confirm `auto-editor` is on your PATH, or set the executable path in the Source & Output section.
+- **Bridge errors**: Resolve Studio must inject `resolve` and `workflowIntegration` objects. Verify Workflow Integrations are enabled in Resolve Studio 20.

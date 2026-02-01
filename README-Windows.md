@@ -1,38 +1,34 @@
-# Auto-Editor DaVinci Resolve Workflow Integration (Windows)
+# Auto-Editor Workflow Integration Plugin (Windows)
 
-This Workflow Integration plugin requires **DaVinci Resolve Studio**.
+This is the **Workflow Integration** plugin for DaVinci Resolve Studio 20. It appears as a dedicated Auto-Editor tab inside Resolve Studio.
 
 ## Build
 
 ```bash
 cd plugin
-npm run build
+node scripts/build.js
 ```
 
 ## Package
 
 ```bash
 cd plugin
-npm run package
+node scripts/package.js
 ```
 
 This creates `plugin/dist/com.autoeditor.workflowintegration-win.zip`.
 
 ## Install
 
-```bash
-cd plugin
-npm run install:resolve
-```
-
-The plugin is installed to:
+Copy the built plugin folder to:
 
 ```
-%ProgramData%\Blackmagic Design\DaVinci Resolve\Support\Workflow Integration Plugins\com.autoeditor.workflowintegration
+C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Workflow Integration Plugins\com.autoeditor.workflowintegration
 ```
 
-Restart Resolve, then open **Workspace → Workflow Integrations → Auto-Editor**.
+Restart Resolve Studio, then open **Workspace -> Workflow Integrations -> Auto-Editor**.
 
 ## Troubleshooting
 
 - **Plugin not showing**: Confirm the folder name matches `com.autoeditor.workflowintegration`, the `manifest.xml` exists, and Resolve Studio was restarted.
+- **Auto-Editor not found**: Ensure `auto-editor` is on your PATH, or set the executable path in the plugin UI.

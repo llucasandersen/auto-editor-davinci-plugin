@@ -9,15 +9,37 @@
   <body>
     <main class="app">
       <header class="app__header">
-        <h1>Auto-Editor</h1>
-        <p>Select a clip and configure Auto-Editor options.</p>
+        <div>
+          <span class="eyebrow">DaVinci Resolve Studio 20 Workflow Integration</span>
+          <h1>Auto-Editor</h1>
+          <p>Turn silence and dead air into clean cuts with a full GUI inside Resolve.</p>
+        </div>
+        <div class="header__meta">
+          <span class="badge">GUI-first</span>
+          <span class="badge badge--accent">Resolve 20</span>
+        </div>
       </header>
 
-      <section class="panel">
-        <label class="field">
-          <span>Clip</span>
-          <select id="clip"></select>
-        </label>
+      <section class="panel panel--source">
+        <div class="panel__head">
+          <h2>Source &amp; Output</h2>
+          <p>Select a Media Pool clip and name the timeline that Resolve will import.</p>
+        </div>
+        <div class="grid grid--two">
+          <label class="field field--span">
+            <span>Clip</span>
+            <select id="clip"></select>
+          </label>
+          <label class="field">
+            <span>Timeline name</span>
+            <input id="timeline" type="text" value="Auto-Editor Timeline" />
+          </label>
+          <label class="field">
+            <span>Auto-Editor executable</span>
+            <input id="binary" type="text" placeholder="auto-editor or C:\\path\\auto-editor.exe" />
+            <small class="field__hint">Leave blank to use auto-editor on your PATH.</small>
+          </label>
+        </div>
       </section>
 
       <section class="panel tabs">
@@ -32,56 +54,106 @@
 
         <div class="tabpanels">
           <div id="panel-basic" class="tabpanel tabpanel--active" role="tabpanel">
-            <label class="field">
-              <span>Timeline name</span>
-              <input id="timeline" type="text" value="Auto-Editor Timeline" />
-            </label>
-            <label class="field">
-              <span>Edit method</span>
+            <div class="subsection">
+              <div class="subsection__head">
+                <h3>Guided Edit Builder</h3>
+                <p>Pick a preset, tune the settings, then apply it to the edit expression below.</p>
+              </div>
+              <div class="grid grid--three">
+                <label class="field">
+                  <span>Edit preset</span>
+                  <select id="editPreset">
+                    <option value="custom">Custom (manual)</option>
+                    <option value="audio">Audio silence detection</option>
+                    <option value="motion">Motion detection</option>
+                    <option value="none">No automatic cuts</option>
+                    <option value="all">Cut everything except add-ins</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Threshold</span>
+                  <input id="editThreshold" type="text" placeholder="0.04 or -19dB" />
+                  <small class="field__hint">Used for audio/motion presets.</small>
+                </label>
+                <label class="field">
+                  <span>Audio stream</span>
+                  <input id="editStream" type="text" placeholder="0, 1, or all" />
+                  <small class="field__hint">Optional for audio detection.</small>
+                </label>
+                <label class="field">
+                  <span>Motion width</span>
+                  <input id="motionWidth" type="text" placeholder="200" />
+                  <small class="field__hint">Optional pixel window width.</small>
+                </label>
+                <div class="field field--button">
+                  <span>Apply preset</span>
+                  <button id="applyPreset" class="button button--secondary">Apply to edit expression</button>
+                </div>
+              </div>
+            </div>
+
+            <label class="field field--span">
+              <span>Edit expression (--edit)</span>
               <input id="edit" type="text" placeholder="audio:threshold=0.04" />
+              <small class="field__hint">Full Auto-Editor expressions are supported here.</small>
             </label>
-            <label class="field">
-              <span>Margin (before,after)</span>
-              <input id="margin" type="text" placeholder="0.2s,0.2s" />
-            </label>
-            <label class="field">
-              <span>When silent</span>
-              <input id="whenSilent" type="text" placeholder="cut" />
-            </label>
-            <label class="field">
-              <span>When normal</span>
-              <input id="whenNormal" type="text" placeholder="keep" />
-            </label>
-            <label class="field">
-              <span>Cut out (time ranges)</span>
-              <input id="cutOut" type="text" placeholder="0,5sec 10sec,12sec" />
-            </label>
-            <label class="field">
-              <span>Add in (time ranges)</span>
-              <input id="addIn" type="text" placeholder="0,5sec" />
-            </label>
+
+            <div class="divider"></div>
+
+            <div class="subsection">
+              <div class="subsection__head">
+                <h3>Timing &amp; Behavior</h3>
+                <p>Fine-tune padding, cuts, and explicit time ranges.</p>
+              </div>
+              <div class="grid grid--two">
+                <label class="field">
+                  <span>Margin (before,after)</span>
+                  <input id="margin" type="text" placeholder="0.2s,0.2s" />
+                </label>
+                <label class="field">
+                  <span>When silent</span>
+                  <input id="whenSilent" type="text" placeholder="cut" />
+                </label>
+                <label class="field">
+                  <span>When normal</span>
+                  <input id="whenNormal" type="text" placeholder="keep" />
+                </label>
+                <label class="field field--span">
+                  <span>Cut out (time ranges)</span>
+                  <input id="cutOut" type="text" placeholder="0,5sec 10sec,12sec" />
+                </label>
+                <label class="field field--span">
+                  <span>Add in (time ranges)</span>
+                  <input id="addIn" type="text" placeholder="0,5sec" />
+                </label>
+              </div>
+            </div>
           </div>
 
           <div id="panel-advanced" class="tabpanel" role="tabpanel">
             <p class="hint">
               Every Auto-Editor flag is available below. Options are appended to the basic settings.
             </p>
-            <label class="field">
-              <span>Export mode override (--export)</span>
-              <input id="exportOverride" type="text" placeholder='resolve:name="Auto-Editor Timeline"' />
-              <small class="field__hint">Leave blank to use the timeline name above.</small>
-            </label>
-            <label class="field">
-              <span>Output path override (--output)</span>
-              <input id="outputOverride" type="text" placeholder="/path/to/output.fcpxml" />
-              <small class="field__hint">Optional. Defaults to a temp .fcpxml file for Resolve import.</small>
-            </label>
+            <div class="grid grid--two">
+              <label class="field">
+                <span>Export mode override (--export)</span>
+                <input id="exportOverride" type="text" placeholder='resolve:name="Auto-Editor Timeline"' />
+                <small class="field__hint">Leave blank to use the timeline name above.</small>
+              </label>
+              <label class="field">
+                <span>Output path override (--output)</span>
+                <input id="outputOverride" type="text" placeholder="/path/to/output.fcpxml" />
+                <small class="field__hint">Optional. Defaults to a temp .fcpxml file for Resolve import.</small>
+              </label>
+            </div>
+
             <div id="cli-options" class="cli-options"></div>
-            <label class="field">
+
+            <label class="field field--span">
               <span>Extra CLI args</span>
               <input id="args" type="text" placeholder="--export resolve --edit motion:threshold=0.02" />
             </label>
-            <label class="field">
+            <label class="field field--span">
               <span>Command preview</span>
               <input id="preview" type="text" readonly />
             </label>
@@ -102,7 +174,7 @@
       </section>
 
       <section class="panel status" aria-live="polite">
-        <span id="status">Ready.</span>
+        <span id="status" data-tone="info">Ready.</span>
       </section>
     </main>
 

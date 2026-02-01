@@ -1,8 +1,8 @@
 {
   "id": "com.autoeditor.workflowintegration",
   "name": "Auto-Editor",
-  "version": "0.1.0",
-  "description": "Auto-Editor workflow integration for DaVinci Resolve.",
+  "version": "1.0.0",
+  "description": "Auto-Editor Workflow Integration for DaVinci Resolve Studio 20.",
   "ui": {
     "type": "web",
     "entry": "index.html"

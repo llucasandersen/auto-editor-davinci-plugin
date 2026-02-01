@@ -1,158 +1,70 @@
-<p align="center"><img src="https://auto-editor.com/img/auto-editor-banner.webp" title="Auto-Editor" width="700"></p>
+# Auto-Editor Workflow Integration Plugin for DaVinci Resolve Studio 20
 
-**Auto-Editor** is a command line application for automatically **editing video and audio** by analyzing a variety of methods, most notably audio loudness.
+This repository ships a **Workflow Integration plugin** that adds Auto-Editor as a dedicated tab inside DaVinci Resolve Studio 20. It runs the Auto-Editor CLI in the background, then imports the generated Resolve timeline straight into your project.
 
----
+## Why this plugin
 
-[![Actions Status](https://img.shields.io/github/actions/workflow/status/wyattblue/auto-editor/build.yml?style=flat)](https://github.com/wyattblue/auto-editor/actions)
-[![Nim](https://img.shields.io/badge/nim-%23FFE953.svg?style=flat&logo=nim&logoColor=black)](https://nim-lang.org)
+- **GUI-first**: no command line required once installed
+- **Full Auto-Editor coverage**: the Advanced tab accepts any CLI flag
+- **Fast iteration**: command preview + copy button + timeline import
+- **Resolve-native workflow**: appears under **Workspace -> Workflow Integrations**
 
-Before doing the real editing, you first cut out the "dead space" which is typically silence. This is known as a "first pass". Cutting these is a boring task, especially if the video is very long.
+## Requirements
 
-```
-auto-editor path/to/your/video.mp4
-```
+- DaVinci Resolve **Studio 20** (Workflow Integrations are Studio-only)
+- Auto-Editor installed and available on your PATH (or set a custom executable path in the UI)
 
-<h2 align="center">Installing</h2>
+## Quick install (Windows)
 
-See [Installing](https://auto-editor.com/installing) for more information.
-
-
-<h2 align="center">Cutting</h2>
-
-Change the **pace** of the edited video by using `--margin`.
-
-`--margin` adds in some "silent" sections to make the editing feel nicer.
+1. Extract `plugin/dist/com.autoeditor.workflowintegration-win.zip`.
+2. Copy the extracted `com.autoeditor.workflowintegration` folder to:
 
 ```
-# Add 0.2 seconds of padding before and after to make the edit nicer.
-# `0.2s` is the default value for `--margin`
-auto-editor example.mp4 --margin 0.2sec
-
-# Add 0.3 seconds of padding before, 1.5 seconds after
-auto-editor example.mp4 --margin 0.3s,1.5sec
+C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Workflow Integration Plugins\
 ```
 
-### Methods for Making Automatic Cuts
-The `--edit` option is how auto-editor makes automated cuts.
+3. Restart Resolve Studio.
+4. Open **Workspace -> Workflow Integrations -> Auto-Editor**.
 
-For example, edit out motionlessness in a video by setting `--edit motion`.
+## Quick install (macOS)
 
-```
-# cut out sections where the total motion is less than 2%.
-auto-editor example.mp4 --edit motion:threshold=0.02
-
-# `--edit audio:threshold=0.04,stream=all` is used by defaut.
-auto-editor example.mp4
-
-# Different tracks can be set with different attribute.
-auto-editor multi-track.mov --edit "(or audio:stream=0 audio:threshold=10%,stream=1)"
-```
-
-Different editing methods can be used together.
-```
-# 'threshold' is always the first argument for edit-method objects
-auto-editor example.mp4 --edit "(or audio:0.03 motion:0.06)"
-```
-
-You can also use `dB` unit, a volume unit familiar to video-editors (case sensitive):
-```
-auto-editor example.mp4 --edit audio:-19dB
-auto-editor example.mp4 --edit audio:-7dB
-auto-editor example.mp4 --edit motion:-19dB
-```
-
-### See What Auto-Editor Cuts Out
-To export what auto-editor normally cuts out. Set `--when-normal` to `cut` and `--when-silent` to `nil` (leave as is). This is the reverse of the usual default values.
+Copy the built folder to:
 
 ```
-auto-editor example.mp4 --when-normal cut --when-silent nil
+/Library/Application Support/Blackmagic Design/DaVinci Resolve/Workflow Integration Plugins/
 ```
 
-<h2 align="center">Exporting to Editors</h2>
+Restart Resolve Studio and open **Workspace -> Workflow Integrations -> Auto-Editor**.
 
-Create an XML file that can be imported to Adobe Premiere Pro using this command:
+## Usage
 
-```
-auto-editor example.mp4 --export premiere
-```
+1. Select a Media Pool clip and name your timeline.
+2. Use the **Guided Edit Builder** for common presets, or type any custom `--edit` expression.
+3. Configure timing (margin, when-silent/when-normal, cut-out/add-in).
+4. Use the **Advanced** tab for the full CLI surface.
+5. Click **Create Timeline** to run Auto-Editor and import the timeline.
 
-Auto-Editor can also export to:
-- DaVinci Resolve with `--export resolve`
-- Final Cut Pro with `--export final-cut-pro`
-- ShotCut with `--export shotcut`
-- Kdenlive with `--export kdenlive`
-- Individual media clips with `--export clip-sequence`
+## Build & package (Windows)
 
-### Naming Timelines
-Some editors support naming timelines. By default, auto-editor will use the name "Auto-Editor Media Group". For `premiere` `resolve` and `final-cut-pro` export options, you can change the name with the following syntax.
-
-```
-# for POSIX shells
-auto-editor example.mp4 --export 'premiere:name="Your name here"'
-
-# for Powershell
-auto-editor example.mp4 --export 'premiere:name=""Your name here""'
+```bash
+cd plugin
+node scripts/build.js
+node scripts/package.js
 ```
 
-### Split by Clip
-
-If you want to split the clips, but don't want auto-editor to do any more editing. There's a simple command.
-```
-auto-editor example.mp4 --when-silent nil --when-normal nil --export premiere
-```
-
-### DaVinci Resolve Scripted GUI
-
-If you want a lightweight Resolve GUI, this repo includes a Resolve script (installed via the scripting folder) that calls the Auto-Editor CLI and imports the generated timeline into Resolve. See [DaVinci Resolve Studio 20 Scripted GUI](docs/resolve-plugin.md) for installation and usage details.
-
-<h2 align="center">Manual Editing</h2>
-
-Use the `--cut-out` option to always remove a section.
+The Windows zip is created at:
 
 ```
-# Cut out the first 30 seconds.
-auto-editor example.mp4 --cut-out 0,30sec
-
-# Cut out the first 30 frames.
-auto-editor example.mp4 --cut-out 0,30
-
-# Always leave in the first 30 seconds.
-auto-editor example.mp4 --add-in 0,30sec
-
-# Cut out the last 10 seconds.
-auto-editor example.mp4 --cut-out -10sec,end
-
-# You can do multiple at once.
-auto-editor example.mp4 --cut-out 0,10 15sec,20sec
-auto-editor example.mp4 --add-in 30sec,40sec 120,150sec
+plugin/dist/com.autoeditor.workflowintegration-win.zip
 ```
 
-And of course, you can use any `--edit` configuration.
+## Scripted GUI (optional)
 
-If you don't want **any automatic cuts**, you can use `--edit none` or `--edit all/e`
+If you cannot use Workflow Integrations, a lightweight **Resolve script** is also included at `resources/resolve-plugin/AutoEditor.lua`. It provides a minimal GUI via Resolve's scripting menu. See `docs/resolve-plugin.md` for details.
 
-```
-# Cut out the first 5 seconds, leave the rest untouched.
-auto-editor example.mp4 --edit none --cut-out 0,5sec
+## Troubleshooting
 
-# Leave in the first 5 seconds, cut everything else out.
-auto-editor example.mp4 --edit all/e --add-in 0,5sec
-```
-
-<h2 align="center">More Options</h2>
-
-List all available options:
-
-```
-auto-editor --help
-```
-
-## Articles
- - [How to Install Auto-Editor](https://auto-editor.com/installing)
- - [All the Options (And What They Do)](https://auto-editor.com/ref/options)
- - [Docs](https://auto-editor.com/docs)
- - [Blog](https://basswood-io.com/blog/)
-
-## Copyright
-Auto-Editor is under the [Public Domain](https://github.com/WyattBlue/auto-editor/blob/master/LICENSE) and includes all directories besides the ones listed below. Auto-Editor was created by [these people.](https://auto-editor.com/blog/thank-you-early-testers)
+- **Plugin not showing**: Confirm Resolve Studio is installed and the plugin folder is in the Workflow Integration Plugins directory.
+- **Auto-Editor fails to run**: Check that `auto-editor` is on your PATH, or set the executable path in the plugin UI.
+- **No clips listed**: Ensure a project is open and clips exist in the Media Pool.
+- **Bridge errors**: Workflow Integrations must be enabled and supported by Resolve Studio 20.

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <id>com.autoeditor.workflowintegration</id>
+  <name>Auto-Editor</name>
+  <version>1.0.0</version>
+  <ui>
+    <html>index.html</html>
+    <script>main.js</script>
+  </ui>
+</manifest>

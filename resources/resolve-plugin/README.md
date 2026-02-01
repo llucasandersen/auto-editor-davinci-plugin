@@ -14,7 +14,7 @@ This script (installed via Resolve's scripting folder) lets you run Auto-Editor 
 ## Usage
 
 1. Open a project in Resolve and make sure the clip you want to edit is in the Media Pool.
-2. Go to **Workspace → Scripts → Utility → AutoEditor**.
+2. Go to **Workspace -> Scripts -> Utility -> AutoEditor**.
 3. Choose a clip, configure options in the **Basic** tab, add any extra CLI flags in **Advanced**, and click **Create Timeline**.
 
 ## Requirements

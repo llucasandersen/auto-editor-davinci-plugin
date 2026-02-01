@@ -1,5 +1,13 @@
 const quote = (value) => `"${String(value).replace(/"/g, '\\"')}"`;
 
+const normalizeBinary = (binary) => {
+  const trimmed = String(binary || "").trim();
+  if (!trimmed) {
+    return "auto-editor";
+  }
+  return /\s/.test(trimmed) ? quote(trimmed) : trimmed;
+};
+
 export const buildAutoEditorArgs = ({
   edit,
   margin,
@@ -7,6 +15,7 @@ export const buildAutoEditorArgs = ({
   whenNormal,
   cutOut,
   addIn,
+  advancedOptions = [],
   extraArgs,
 }) => {
   const args = [];
@@ -29,6 +38,13 @@ export const buildAutoEditorArgs = ({
   if (addIn) {
     args.push(`--add-in ${addIn}`);
   }
+  advancedOptions.forEach((option) => {
+    if (option.hasValue) {
+      args.push(`${option.flag} ${option.value}`);
+    } else {
+      args.push(option.flag);
+    }
+  });
   if (extraArgs) {
     args.push(extraArgs);
   }
@@ -37,12 +53,16 @@ export const buildAutoEditorArgs = ({
 };
 
 export const buildAutoEditorCommand = ({
+  binary,
   clipPath,
   timelineName,
   outputPath,
+  exportOverride,
   args,
 }) => {
-  let command = `auto-editor ${quote(clipPath)} --export resolve:name=${quote(timelineName)}`;
+  const bin = normalizeBinary(binary);
+  const exportValue = exportOverride || `resolve:name=${quote(timelineName)}`;
+  let command = `${bin} ${quote(clipPath)} --export ${exportValue}`;
   if (args) {
     command = `${command} ${args}`;
   }
@@ -51,15 +71,20 @@ export const buildAutoEditorCommand = ({
 };
 
 export const buildPreviewCommand = ({
+  binary,
   clipLabel,
   timelineName,
+  exportOverride,
+  outputOverride,
   args,
 }) => {
+  const bin = normalizeBinary(binary);
   const clipToken = clipLabel ? quote(clipLabel) : "<clip>";
-  let preview = `auto-editor ${clipToken} --export resolve:name=${quote(timelineName)}`;
+  const exportValue = exportOverride || `resolve:name=${quote(timelineName)}`;
+  let preview = `${bin} ${clipToken} --export ${exportValue}`;
   if (args) {
     preview = `${preview} ${args}`;
   }
-  preview = `${preview} --output <path>.fcpxml`;
+  preview = `${preview} --output ${outputOverride || "<path>.fcpxml"}`;
   return preview;
 };

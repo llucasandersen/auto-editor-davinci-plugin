@@ -1,5 +1,13 @@
 const quote = (value) => `"${String(value).replace(/"/g, '\\"')}"`;
 
+const normalizeBinary = (binary) => {
+  const trimmed = String(binary || "").trim();
+  if (!trimmed) {
+    return "auto-editor";
+  }
+  return /\s/.test(trimmed) ? quote(trimmed) : trimmed;
+};
+
 export const buildAutoEditorArgs = ({
   edit,
   margin,
@@ -45,14 +53,16 @@ export const buildAutoEditorArgs = ({
 };
 
 export const buildAutoEditorCommand = ({
+  binary,
   clipPath,
   timelineName,
   outputPath,
   exportOverride,
   args,
 }) => {
+  const bin = normalizeBinary(binary);
   const exportValue = exportOverride || `resolve:name=${quote(timelineName)}`;
-  let command = `auto-editor ${quote(clipPath)} --export ${exportValue}`;
+  let command = `${bin} ${quote(clipPath)} --export ${exportValue}`;
   if (args) {
     command = `${command} ${args}`;
   }
@@ -61,15 +71,17 @@ export const buildAutoEditorCommand = ({
 };
 
 export const buildPreviewCommand = ({
+  binary,
   clipLabel,
   timelineName,
   exportOverride,
   outputOverride,
   args,
 }) => {
+  const bin = normalizeBinary(binary);
   const clipToken = clipLabel ? quote(clipLabel) : "<clip>";
   const exportValue = exportOverride || `resolve:name=${quote(timelineName)}`;
-  let preview = `auto-editor ${clipToken} --export ${exportValue}`;
+  let preview = `${bin} ${clipToken} --export ${exportValue}`;
   if (args) {
     preview = `${preview} ${args}`;
   }
