@@ -55,36 +55,42 @@ export const buildAutoEditorArgs = ({
 export const buildAutoEditorCommand = ({
   binary,
   clipPath,
-  timelineName,
+  exportValue,
   outputPath,
-  exportOverride,
   args,
 }) => {
   const bin = normalizeBinary(binary);
-  const exportValue = exportOverride || `resolve:name=${quote(timelineName)}`;
-  let command = `${bin} ${quote(clipPath)} --export ${exportValue}`;
+  let command = `${bin} ${quote(clipPath)}`;
+  if (exportValue) {
+    command = `${command} --export ${exportValue}`;
+  }
   if (args) {
     command = `${command} ${args}`;
   }
-  command = `${command} --output ${quote(outputPath)}`;
+  if (outputPath) {
+    command = `${command} --output ${quote(outputPath)}`;
+  }
   return command;
 };
 
 export const buildPreviewCommand = ({
   binary,
   clipLabel,
-  timelineName,
-  exportOverride,
-  outputOverride,
+  exportValue,
+  outputPath,
   args,
 }) => {
   const bin = normalizeBinary(binary);
   const clipToken = clipLabel ? quote(clipLabel) : "<clip>";
-  const exportValue = exportOverride || `resolve:name=${quote(timelineName)}`;
-  let preview = `${bin} ${clipToken} --export ${exportValue}`;
+  let preview = `${bin} ${clipToken}`;
+  if (exportValue) {
+    preview = `${preview} --export ${exportValue}`;
+  }
   if (args) {
     preview = `${preview} ${args}`;
   }
-  preview = `${preview} --output ${outputOverride || "<path>.fcpxml"}`;
+  if (outputPath) {
+    preview = `${preview} --output ${quote(outputPath)}`;
+  }
   return preview;
 };

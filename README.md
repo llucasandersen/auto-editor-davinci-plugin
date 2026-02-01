@@ -5,7 +5,9 @@ This repository ships a **Workflow Integration plugin** that adds Auto-Editor as
 ## Why this plugin
 
 - **GUI-first**: no command line required once installed
-- **Full Auto-Editor coverage**: the Advanced tab accepts any CLI flag
+- **Full Auto-Editor coverage**: every CLI feature mapped into buttons, toggles, and guided fields
+- **Workflow modes**: Resolve timeline import or export-only runs
+- **Utilities tab**: info, desc, levels, subdump, whisper, and cache tools
 - **Fast iteration**: command preview + copy button + timeline import
 - **Resolve-native workflow**: appears under **Workspace -> Workflow Integrations**
 
@@ -38,11 +40,12 @@ Restart Resolve Studio and open **Workspace -> Workflow Integrations -> Auto-Edi
 
 ## Usage
 
-1. Select a Media Pool clip and name your timeline.
-2. Use the **Guided Edit Builder** for common presets, or type any custom `--edit` expression.
-3. Configure timing (margin, when-silent/when-normal, cut-out/add-in).
-4. Use the **Advanced** tab for the full CLI surface.
-5. Click **Create Timeline** to run Auto-Editor and import the timeline.
+1. Select a Media Pool clip, choose a workflow mode, and name your timeline.
+2. Build an edit strategy with the rule builder (single, combined, or manual expression).
+3. Configure pacing, actions, and manual ranges in the Edit tab.
+4. Use the **Advanced** tab for codecs, streams, downloads, and diagnostics.
+5. Click **Create Timeline** (Resolve mode) or **Run Export** (export-only mode).
+6. For analysis and utility commands, switch to the **Utilities** tab.
 
 ## Build & package (Windows)
 

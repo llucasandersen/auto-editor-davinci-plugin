@@ -12,7 +12,7 @@
         <div>
           <span class="eyebrow">DaVinci Resolve Studio 20 Workflow Integration</span>
           <h1>Auto-Editor</h1>
-          <p>Turn silence and dead air into clean cuts with a full GUI inside Resolve.</p>
+          <p>Pick a clip, choose your editing strategy, and generate a timeline in seconds.</p>
         </div>
         <div class="header__meta">
           <span class="badge">GUI-first</span>
@@ -23,153 +23,600 @@
       <section class="panel panel--source">
         <div class="panel__head">
           <h2>Source &amp; Output</h2>
-          <p>Select a Media Pool clip and name the timeline that Resolve will import.</p>
+          <p>Select a Media Pool clip and define how Auto-Editor should export.</p>
         </div>
         <div class="grid grid--two">
+          <div class="field field--span">
+            <span>Workflow mode</span>
+            <div class="segmented" data-target="runMode">
+              <button type="button" class="segmented__item" data-value="resolve">Resolve timeline import</button>
+              <button type="button" class="segmented__item" data-value="export">Export only</button>
+            </div>
+            <input id="runMode" type="hidden" value="resolve" />
+          </div>
+
           <label class="field field--span">
-            <span>Clip</span>
+            <span>Media Pool clip</span>
             <select id="clip"></select>
           </label>
+
           <label class="field">
             <span>Timeline name</span>
             <input id="timeline" type="text" value="Auto-Editor Timeline" />
           </label>
+
           <label class="field">
-            <span>Auto-Editor executable</span>
-            <input id="binary" type="text" placeholder="auto-editor or C:\\path\\auto-editor.exe" />
-            <small class="field__hint">Leave blank to use auto-editor on your PATH.</small>
+            <span>Export target</span>
+            <select id="exportTarget">
+              <option value="resolve">Resolve</option>
+              <option value="premiere">Premiere Pro</option>
+              <option value="final-cut-pro">Final Cut Pro</option>
+              <option value="shotcut">Shotcut</option>
+              <option value="kdenlive">Kdenlive</option>
+              <option value="clip-sequence">Clip sequence</option>
+              <option value="none">Render media (no timeline export)</option>
+              <option value="custom">Custom</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Export options</span>
+            <input id="exportAttrs" type="text" placeholder="Optional attributes" />
+            <small class="field__hint">Leave blank to use the timeline name in Resolve mode.</small>
+          </label>
+
+          <label class="field field--span" id="exportCustomField">
+            <span>Custom export string</span>
+            <input id="exportCustom" type="text" placeholder='resolve:name="Auto-Editor Timeline"' />
+          </label>
+
+          <label class="field field--span">
+            <span>Output path (optional)</span>
+            <input id="outputOverride" type="text" placeholder="Leave blank for defaults" />
           </label>
         </div>
       </section>
-
       <section class="panel tabs">
         <div class="tablist" role="tablist">
-          <button id="tab-basic" class="tab tab--active" role="tab" aria-selected="true" data-tab="basic">
-            Basic
+          <button id="tab-edit" class="tab tab--active" role="tab" aria-selected="true" data-tab="edit">
+            Edit
           </button>
           <button id="tab-advanced" class="tab" role="tab" aria-selected="false" data-tab="advanced">
             Advanced
           </button>
+          <button id="tab-utilities" class="tab" role="tab" aria-selected="false" data-tab="utilities">
+            Utilities
+          </button>
         </div>
 
         <div class="tabpanels">
-          <div id="panel-basic" class="tabpanel tabpanel--active" role="tabpanel">
+          <div id="panel-edit" class="tabpanel tabpanel--active" role="tabpanel">
             <div class="subsection">
               <div class="subsection__head">
-                <h3>Guided Edit Builder</h3>
-                <p>Pick a preset, tune the settings, then apply it to the edit expression below.</p>
+                <h3>Editing strategy</h3>
+                <p>Pick how Auto-Editor decides what to keep and cut.</p>
               </div>
-              <div class="grid grid--three">
-                <label class="field">
-                  <span>Edit preset</span>
-                  <select id="editPreset">
-                    <option value="custom">Custom (manual)</option>
-                    <option value="audio">Audio silence detection</option>
-                    <option value="motion">Motion detection</option>
-                    <option value="none">No automatic cuts</option>
-                    <option value="all">Cut everything except add-ins</option>
-                  </select>
-                </label>
-                <label class="field">
-                  <span>Threshold</span>
-                  <input id="editThreshold" type="text" placeholder="0.04 or -19dB" />
-                  <small class="field__hint">Used for audio/motion presets.</small>
-                </label>
-                <label class="field">
-                  <span>Audio stream</span>
-                  <input id="editStream" type="text" placeholder="0, 1, or all" />
-                  <small class="field__hint">Optional for audio detection.</small>
-                </label>
-                <label class="field">
-                  <span>Motion width</span>
-                  <input id="motionWidth" type="text" placeholder="200" />
-                  <small class="field__hint">Optional pixel window width.</small>
-                </label>
-                <div class="field field--button">
-                  <span>Apply preset</span>
-                  <button id="applyPreset" class="button button--secondary">Apply to edit expression</button>
+
+              <div class="field">
+                <span>Rule mode</span>
+                <div class="segmented" data-target="editMode">
+                  <button type="button" class="segmented__item" data-value="single">Single rule</button>
+                  <button type="button" class="segmented__item" data-value="combine">Combine rules</button>
+                  <button type="button" class="segmented__item" data-value="manual">Manual expression</button>
                 </div>
+                <input id="editMode" type="hidden" value="single" />
+              </div>
+
+              <div id="editSingle" class="edit-panel">
+                <div id="singleRuleContainer"></div>
+              </div>
+
+              <div id="editCombine" class="edit-panel is-hidden">
+                <div class="grid grid--two">
+                  <label class="field">
+                    <span>Combine rules with</span>
+                    <select id="combineOperator">
+                      <option value="or">Any rule matches</option>
+                      <option value="and">All rules must match</option>
+                      <option value="xor">Exactly one rule matches</option>
+                    </select>
+                  </label>
+                </div>
+                <div id="ruleList" class="rule-list"></div>
+                <button id="addRule" class="button button--secondary" type="button">Add rule</button>
+              </div>
+
+              <div id="editManual" class="edit-panel is-hidden">
+                <label class="field">
+                  <span>Manual expression</span>
+                  <textarea id="editManualExpression" rows="3" placeholder="audio:threshold=0.04"></textarea>
+                  <small class="field__hint">Use this only if you need complex expressions.</small>
+                </label>
               </div>
             </div>
-
-            <label class="field field--span">
-              <span>Edit expression (--edit)</span>
-              <input id="edit" type="text" placeholder="audio:threshold=0.04" />
-              <small class="field__hint">Full Auto-Editor expressions are supported here.</small>
-            </label>
 
             <div class="divider"></div>
 
             <div class="subsection">
               <div class="subsection__head">
-                <h3>Timing &amp; Behavior</h3>
-                <p>Fine-tune padding, cuts, and explicit time ranges.</p>
+                <h3>Timing &amp; behavior</h3>
+                <p>Define pacing, cuts, and manual ranges.</p>
               </div>
+
               <div class="grid grid--two">
                 <label class="field">
-                  <span>Margin (before,after)</span>
+                  <span>Margin (before, after)</span>
                   <input id="margin" type="text" placeholder="0.2s,0.2s" />
                 </label>
-                <label class="field">
-                  <span>When silent</span>
-                  <input id="whenSilent" type="text" placeholder="cut" />
-                </label>
-                <label class="field">
-                  <span>When normal</span>
-                  <input id="whenNormal" type="text" placeholder="keep" />
-                </label>
-                <label class="field field--span">
-                  <span>Cut out (time ranges)</span>
-                  <input id="cutOut" type="text" placeholder="0,5sec 10sec,12sec" />
-                </label>
-                <label class="field field--span">
-                  <span>Add in (time ranges)</span>
-                  <input id="addIn" type="text" placeholder="0,5sec" />
-                </label>
+              </div>
+
+              <div class="action-grid">
+                <div class="action-card">
+                  <h4>Silent sections</h4>
+                  <label class="field field--checkbox">
+                    <span>Remove silent sections</span>
+                    <input id="silentCut" type="checkbox" checked />
+                  </label>
+                  <div class="action-controls">
+                    <label class="field field--toggle">
+                      <input id="silentSpeedEnabled" type="checkbox" />
+                      <span>Speed</span>
+                      <input id="silentSpeed" type="number" step="0.1" placeholder="8" />
+                    </label>
+                    <label class="field field--toggle">
+                      <input id="silentVarispeedEnabled" type="checkbox" />
+                      <span>Varispeed</span>
+                      <input id="silentVarispeed" type="number" step="0.1" placeholder="2" />
+                    </label>
+                    <label class="field field--toggle">
+                      <input id="silentVolumeEnabled" type="checkbox" />
+                      <span>Volume</span>
+                      <input id="silentVolume" type="number" step="0.1" placeholder="0.5" />
+                    </label>
+                  </div>
+                </div>
+
+                <div class="action-card">
+                  <h4>Loud sections</h4>
+                  <label class="field field--checkbox">
+                    <span>Remove loud sections</span>
+                    <input id="normalCut" type="checkbox" />
+                  </label>
+                  <div class="action-controls">
+                    <label class="field field--toggle">
+                      <input id="normalSpeedEnabled" type="checkbox" />
+                      <span>Speed</span>
+                      <input id="normalSpeed" type="number" step="0.1" placeholder="1" />
+                    </label>
+                    <label class="field field--toggle">
+                      <input id="normalVarispeedEnabled" type="checkbox" />
+                      <span>Varispeed</span>
+                      <input id="normalVarispeed" type="number" step="0.1" placeholder="1" />
+                    </label>
+                    <label class="field field--toggle">
+                      <input id="normalVolumeEnabled" type="checkbox" />
+                      <span>Volume</span>
+                      <input id="normalVolume" type="number" step="0.1" placeholder="1" />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="range-section">
+                <div class="range-card">
+                  <h4>Remove ranges</h4>
+                  <div id="cutRanges" class="range-list"></div>
+                  <button id="addCutRange" class="button button--secondary" type="button">Add range</button>
+                </div>
+
+                <div class="range-card">
+                  <h4>Force include ranges</h4>
+                  <div id="addRanges" class="range-list"></div>
+                  <button id="addAddRange" class="button button--secondary" type="button">Add range</button>
+                </div>
+
+                <div class="range-card">
+                  <h4>Custom speed ranges</h4>
+                  <div id="speedRanges" class="range-list"></div>
+                  <button id="addSpeedRange" class="button button--secondary" type="button">Add speed range</button>
+                </div>
               </div>
             </div>
           </div>
-
           <div id="panel-advanced" class="tabpanel" role="tabpanel">
-            <p class="hint">
-              Every Auto-Editor flag is available below. Options are appended to the basic settings.
-            </p>
-            <div class="grid grid--two">
-              <label class="field">
-                <span>Export mode override (--export)</span>
-                <input id="exportOverride" type="text" placeholder='resolve:name="Auto-Editor Timeline"' />
-                <small class="field__hint">Leave blank to use the timeline name above.</small>
-              </label>
-              <label class="field">
-                <span>Output path override (--output)</span>
-                <input id="outputOverride" type="text" placeholder="/path/to/output.fcpxml" />
-                <small class="field__hint">Optional. Defaults to a temp .fcpxml file for Resolve import.</small>
-              </label>
+            <div class="subsection">
+              <div class="subsection__head">
+                <h3>Timeline &amp; layout</h3>
+                <p>Control timeline metadata and visuals.</p>
+              </div>
+              <div class="grid grid--two">
+                <label class="field">
+                  <span>Frame rate</span>
+                  <input id="frameRate" type="text" placeholder="24" />
+                </label>
+                <label class="field">
+                  <span>Sample rate</span>
+                  <input id="sampleRate" type="text" placeholder="48000" />
+                </label>
+                <label class="field">
+                  <span>Resolution</span>
+                  <div class="inline-inputs">
+                    <input id="resolutionWidth" type="number" placeholder="1920" />
+                    <input id="resolutionHeight" type="number" placeholder="1080" />
+                  </div>
+                </label>
+                <label class="field">
+                  <span>Background color</span>
+                  <input id="backgroundColor" type="color" value="#000000" />
+                </label>
+                <label class="field">
+                  <span>Scale</span>
+                  <input id="scale" type="number" step="0.1" placeholder="1" />
+                </label>
+              </div>
             </div>
 
-            <div id="cli-options" class="cli-options"></div>
+            <div class="divider"></div>
 
-            <label class="field field--span">
-              <span>Extra CLI args</span>
-              <input id="args" type="text" placeholder="--export resolve --edit motion:threshold=0.02" />
-            </label>
-            <label class="field field--span">
-              <span>Command preview</span>
-              <input id="preview" type="text" readonly />
-            </label>
+            <div class="subsection">
+              <div class="subsection__head">
+                <h3>Render &amp; audio</h3>
+                <p>Configure codecs, bitrate, and normalization.</p>
+              </div>
+              <div class="grid grid--two">
+                <label class="field">
+                  <span>Video codec</span>
+                  <input id="videoCodec" type="text" placeholder="h264" />
+                </label>
+                <label class="field">
+                  <span>Video bitrate</span>
+                  <input id="videoBitrate" type="text" placeholder="5M" />
+                </label>
+                <label class="field">
+                  <span>Video profile</span>
+                  <input id="videoProfile" type="text" placeholder="high" />
+                </label>
+                <label class="field">
+                  <span>Audio codec</span>
+                  <input id="audioCodec" type="text" placeholder="aac" />
+                </label>
+                <label class="field">
+                  <span>Audio layout</span>
+                  <input id="audioLayout" type="text" placeholder="stereo" />
+                </label>
+                <label class="field">
+                  <span>Audio bitrate</span>
+                  <input id="audioBitrate" type="text" placeholder="192k" />
+                </label>
+              </div>
 
-            <div class="actions">
-              <button id="readTimeline" class="button button--secondary">Read Current Timeline</button>
-              <button id="renderTimeline" class="button button--secondary">Render / Export</button>
+              <div class="grid grid--two">
+                <label class="field">
+                  <span>Audio mix mode</span>
+                  <select id="audioMixMode">
+                    <option value="default">Keep tracks separate (default)</option>
+                    <option value="mix">Mix to one track</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Audio normalization</span>
+                  <select id="audioNormalizeMode">
+                    <option value="off">Off</option>
+                    <option value="ebu">EBU R128</option>
+                    <option value="peak">Peak</option>
+                  </select>
+                </label>
+              </div>
+
+              <div id="audioNormalizePanel" class="grid grid--two">
+                <label class="field">
+                  <span>Integrated loudness (I)</span>
+                  <input id="ebuI" type="number" step="0.1" placeholder="-16" />
+                </label>
+                <label class="field">
+                  <span>Loudness range (LRA)</span>
+                  <input id="ebuLra" type="number" step="0.1" placeholder="7" />
+                </label>
+                <label class="field">
+                  <span>True peak (TP)</span>
+                  <input id="ebuTp" type="number" step="0.1" placeholder="-2" />
+                </label>
+                <label class="field">
+                  <span>Gain</span>
+                  <input id="ebuGain" type="number" step="0.1" placeholder="0" />
+                </label>
+                <label class="field is-hidden" id="peakPanel">
+                  <span>Peak target</span>
+                  <input id="peakTarget" type="number" step="0.1" placeholder="-8" />
+                </label>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="subsection">
+              <div class="subsection__head">
+                <h3>Container &amp; streams</h3>
+                <p>Control which streams and container behaviors are included.</p>
+              </div>
+              <div class="grid grid--two">
+                <label class="field field--checkbox">
+                  <span>Disable video stream</span>
+                  <input id="disableVideo" type="checkbox" />
+                </label>
+                <label class="field field--checkbox">
+                  <span>Disable audio stream</span>
+                  <input id="disableAudio" type="checkbox" />
+                </label>
+                <label class="field field--checkbox">
+                  <span>Disable subtitles</span>
+                  <input id="disableSubtitles" type="checkbox" />
+                </label>
+                <label class="field field--checkbox">
+                  <span>Disable data streams</span>
+                  <input id="disableData" type="checkbox" />
+                </label>
+              </div>
+              <div class="grid grid--two">
+                <label class="field">
+                  <span>Faststart mode</span>
+                  <select id="faststartMode">
+                    <option value="auto">Default</option>
+                    <option value="fast">Force faststart</option>
+                    <option value="no">Disable faststart</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Fragmented output</span>
+                  <select id="fragmentedMode">
+                    <option value="auto">Default</option>
+                    <option value="yes">Enable fragmented</option>
+                    <option value="no">Disable fragmented</option>
+                  </select>
+                </label>
+                <label class="field field--checkbox">
+                  <span>Disable seek during render</span>
+                  <input id="noSeek" type="checkbox" />
+                </label>
+                <label class="field field--checkbox">
+                  <span>Do not auto-open output</span>
+                  <input id="noOpen" type="checkbox" />
+                </label>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="subsection">
+              <div class="subsection__head">
+                <h3>Download &amp; system</h3>
+                <p>Optional settings for URL downloads and system paths.</p>
+              </div>
+              <div class="grid grid--two">
+                <label class="field">
+                  <span>yt-dlp location</span>
+                  <input id="ytDlpLocation" type="text" placeholder="C:\\tools\\yt-dlp.exe" />
+                </label>
+                <label class="field">
+                  <span>Download format</span>
+                  <input id="downloadFormat" type="text" placeholder="bestvideo+bestaudio" />
+                </label>
+                <label class="field">
+                  <span>Download output template</span>
+                  <input id="outputFormat" type="text" placeholder="%(title)s.%(ext)s" />
+                </label>
+                <label class="field">
+                  <span>Download extras</span>
+                  <input id="ytDlpExtras" type="text" placeholder="--cookies cookies.txt" />
+                </label>
+                <label class="field">
+                  <span>Temp directory</span>
+                  <input id="tempDir" type="text" placeholder="C:\\temp\\auto-editor" />
+                </label>
+                <label class="field">
+                  <span>Auto-Editor executable</span>
+                  <input id="binary" type="text" placeholder="auto-editor or C:\\path\\auto-editor.exe" />
+                </label>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="subsection">
+              <div class="subsection__head">
+                <h3>Diagnostics</h3>
+                <p>Logs, progress display, and command details.</p>
+              </div>
+              <div class="grid grid--two">
+                <label class="field">
+                  <span>Progress style</span>
+                  <select id="progressStyle">
+                    <option value="">Default</option>
+                    <option value="modern">Modern</option>
+                    <option value="classic">Classic</option>
+                    <option value="ascii">ASCII</option>
+                    <option value="machine">Machine</option>
+                    <option value="none">None</option>
+                  </select>
+                </label>
+                <label class="field field--checkbox">
+                  <span>Show debug output</span>
+                  <input id="debug" type="checkbox" />
+                </label>
+                <label class="field field--checkbox">
+                  <span>Quiet mode</span>
+                  <input id="quiet" type="checkbox" />
+                </label>
+                <label class="field field--checkbox">
+                  <span>Preview stats only</span>
+                  <input id="previewStats" type="checkbox" />
+                </label>
+              </div>
+
+              <div class="actions">
+                <button id="showHelp" class="button button--secondary" type="button">Show help</button>
+                <button id="showVersion" class="button button--secondary" type="button">Show version</button>
+              </div>
+
+              <details class="details">
+                <summary>Command details</summary>
+                <label class="field">
+                  <span>Command preview</span>
+                  <input id="preview" type="text" readonly />
+                </label>
+                <button id="copy" class="button button--ghost" type="button">Copy command</button>
+              </details>
+            </div>
+          </div>
+          <div id="panel-utilities" class="tabpanel" role="tabpanel">
+            <div class="subsection">
+              <div class="subsection__head">
+                <h3>Utility tools</h3>
+                <p>Run Auto-Editor utilities without leaving Resolve.</p>
+              </div>
+
+              <div class="field">
+                <span>Utility</span>
+                <div class="segmented" data-target="utilityCommand">
+                  <button type="button" class="segmented__item" data-value="info">Info</button>
+                  <button type="button" class="segmented__item" data-value="desc">Description</button>
+                  <button type="button" class="segmented__item" data-value="levels">Levels</button>
+                  <button type="button" class="segmented__item" data-value="subdump">Subtitle dump</button>
+                  <button type="button" class="segmented__item" data-value="whisper">Whisper</button>
+                  <button type="button" class="segmented__item" data-value="cache">Cache</button>
+                </div>
+                <input id="utilityCommand" type="hidden" value="info" />
+              </div>
+
+              <div class="field">
+                <span>Input source</span>
+                <div class="segmented" data-target="utilityInputMode">
+                  <button type="button" class="segmented__item" data-value="clip">Selected clip</button>
+                  <button type="button" class="segmented__item" data-value="manual">Manual list</button>
+                </div>
+                <input id="utilityInputMode" type="hidden" value="clip" />
+              </div>
+
+              <label class="field" id="utilityInputField">
+                <span>Manual input list</span>
+                <textarea id="utilityInputList" rows="2" placeholder="Paste one or more paths, separated by semicolons or new lines."></textarea>
+              </label>
+
+              <div class="utility-panels">
+                <div class="utility-panel" data-utility="info">
+                  <label class="field field--checkbox">
+                    <span>JSON output</span>
+                    <input id="infoJson" type="checkbox" />
+                  </label>
+                </div>
+
+                <div class="utility-panel" data-utility="desc">
+                  <small class="field__hint">Outputs description metadata for each file.</small>
+                </div>
+
+                <div class="utility-panel" data-utility="levels">
+                  <div class="grid grid--two">
+                    <label class="field">
+                      <span>Method</span>
+                      <select id="levelsMethod">
+                        <option value="audio">Audio</option>
+                        <option value="motion">Motion</option>
+                        <option value="subtitle">Subtitle</option>
+                        <option value="word">Word</option>
+                        <option value="regex">Regex</option>
+                      </select>
+                    </label>
+                    <label class="field">
+                      <span>Stream index</span>
+                      <input id="levelsStream" type="number" placeholder="0" />
+                    </label>
+                    <label class="field">
+                      <span>Pattern / word</span>
+                      <input id="levelsPattern" type="text" placeholder="optional" />
+                    </label>
+                    <label class="field field--checkbox">
+                      <span>Ignore case</span>
+                      <input id="levelsIgnoreCase" type="checkbox" />
+                    </label>
+                    <label class="field">
+                      <span>Motion width</span>
+                      <input id="levelsWidth" type="number" placeholder="400" />
+                    </label>
+                    <label class="field">
+                      <span>Motion blur</span>
+                      <input id="levelsBlur" type="number" placeholder="9" />
+                    </label>
+                    <label class="field">
+                      <span>Timebase</span>
+                      <input id="levelsTimebase" type="text" placeholder="30/1" />
+                    </label>
+                    <label class="field field--checkbox">
+                      <span>Skip cache</span>
+                      <input id="levelsNoCache" type="checkbox" />
+                    </label>
+                  </div>
+                </div>
+
+                <div class="utility-panel" data-utility="subdump">
+                  <small class="field__hint">Outputs text-based subtitles when available.</small>
+                </div>
+
+                <div class="utility-panel" data-utility="whisper">
+                  <div class="grid grid--two">
+                    <label class="field">
+                      <span>Model</span>
+                      <input id="whisperModel" type="text" placeholder="ggml-base.en.bin" />
+                    </label>
+                    <label class="field">
+                      <span>Output format</span>
+                      <select id="whisperFormat">
+                        <option value="">Text (default)</option>
+                        <option value="text">Text</option>
+                        <option value="srt">SRT</option>
+                        <option value="json">JSON</option>
+                      </select>
+                    </label>
+                    <label class="field">
+                      <span>Output path</span>
+                      <input id="whisperOutput" type="text" placeholder="Leave blank for console" />
+                    </label>
+                    <label class="field">
+                      <span>Queue seconds</span>
+                      <input id="whisperQueue" type="number" placeholder="10" />
+                    </label>
+                    <label class="field">
+                      <span>VAD model</span>
+                      <input id="whisperVad" type="text" placeholder="silero_vad.onnx" />
+                    </label>
+                    <label class="field field--checkbox">
+                      <span>Split words</span>
+                      <input id="whisperSplit" type="checkbox" />
+                    </label>
+                    <label class="field field--checkbox">
+                      <span>Debug output</span>
+                      <input id="whisperDebug" type="checkbox" />
+                    </label>
+                  </div>
+                </div>
+
+                <div class="utility-panel" data-utility="cache">
+                  <label class="field">
+                    <span>Cache action</span>
+                    <select id="cacheAction">
+                      <option value="list">List cache entries</option>
+                      <option value="clear">Clear cache</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       <section class="panel controls">
-        <button id="refresh" class="button button--secondary">Refresh Clips</button>
-        <button id="copy" class="button button--secondary">Copy Command</button>
-        <button id="run" class="button">Create Timeline</button>
+        <button id="refresh" class="button button--secondary">Refresh clips</button>
+        <button id="run" class="button">Create timeline</button>
         <button id="cancel" class="button button--ghost">Close</button>
       </section>
 
@@ -177,6 +624,174 @@
         <span id="status" data-tone="info">Ready.</span>
       </section>
     </main>
+    <template id="ruleTemplate">
+      <div class="rule-card">
+        <div class="rule-header">
+          <span class="rule-title">Rule</span>
+          <label class="field field--checkbox">
+            <span>Invert</span>
+            <input data-field="invert" type="checkbox" />
+          </label>
+          <button type="button" class="icon-button" data-action="remove">Remove</button>
+        </div>
+        <div class="field">
+          <span>Method</span>
+          <div class="segmented" data-role="method">
+            <button type="button" class="segmented__item" data-value="audio">Audio</button>
+            <button type="button" class="segmented__item" data-value="motion">Motion</button>
+            <button type="button" class="segmented__item" data-value="subtitle">Subtitle</button>
+            <button type="button" class="segmented__item" data-value="word">Word</button>
+            <button type="button" class="segmented__item" data-value="regex">Regex</button>
+            <button type="button" class="segmented__item" data-value="none">Keep all</button>
+            <button type="button" class="segmented__item" data-value="all">Cut all</button>
+          </div>
+        </div>
+        <div class="rule-body">
+          <div class="rule-panel" data-method="audio">
+            <div class="grid grid--three">
+              <label class="field">
+                <span>Threshold</span>
+                <input data-field="audioThreshold" type="number" step="0.01" placeholder="0.04" />
+              </label>
+              <label class="field">
+                <span>Unit</span>
+                <select data-field="audioThresholdUnit">
+                  <option value="ratio">Ratio</option>
+                  <option value="percent">Percent</option>
+                  <option value="db">dB</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Stream</span>
+                <select data-field="audioStreamMode">
+                  <option value="all">All</option>
+                  <option value="index">Index</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Stream index</span>
+                <input data-field="audioStreamIndex" type="number" placeholder="0" />
+              </label>
+              <label class="field">
+                <span>Min clip length</span>
+                <input data-field="audioMinClip" type="text" placeholder="3" />
+              </label>
+              <label class="field">
+                <span>Min cut length</span>
+                <input data-field="audioMinCut" type="text" placeholder="6" />
+              </label>
+            </div>
+          </div>
+
+          <div class="rule-panel" data-method="motion">
+            <div class="grid grid--three">
+              <label class="field">
+                <span>Threshold</span>
+                <input data-field="motionThreshold" type="number" step="0.01" placeholder="0.02" />
+              </label>
+              <label class="field">
+                <span>Unit</span>
+                <select data-field="motionThresholdUnit">
+                  <option value="ratio">Ratio</option>
+                  <option value="percent">Percent</option>
+                  <option value="db">dB</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Stream index</span>
+                <input data-field="motionStream" type="number" placeholder="0" />
+              </label>
+              <label class="field">
+                <span>Width</span>
+                <input data-field="motionWidth" type="number" placeholder="400" />
+              </label>
+              <label class="field">
+                <span>Blur</span>
+                <input data-field="motionBlur" type="number" placeholder="9" />
+              </label>
+            </div>
+          </div>
+
+          <div class="rule-panel" data-method="subtitle">
+            <div class="grid grid--two">
+              <label class="field">
+                <span>Pattern</span>
+                <input data-field="subtitlePattern" type="text" placeholder="regex pattern" />
+              </label>
+              <label class="field">
+                <span>Stream index</span>
+                <input data-field="subtitleStream" type="number" placeholder="0" />
+              </label>
+              <label class="field field--checkbox">
+                <span>Ignore case</span>
+                <input data-field="subtitleIgnoreCase" type="checkbox" />
+              </label>
+            </div>
+          </div>
+
+          <div class="rule-panel" data-method="word">
+            <div class="grid grid--two">
+              <label class="field">
+                <span>Word</span>
+                <input data-field="wordValue" type="text" placeholder="keyword" />
+              </label>
+              <label class="field">
+                <span>Stream index</span>
+                <input data-field="wordStream" type="number" placeholder="0" />
+              </label>
+              <label class="field field--checkbox">
+                <span>Ignore case</span>
+                <input data-field="wordIgnoreCase" type="checkbox" />
+              </label>
+            </div>
+          </div>
+
+          <div class="rule-panel" data-method="regex">
+            <div class="grid grid--two">
+              <label class="field">
+                <span>Regex pattern</span>
+                <input data-field="regexPattern" type="text" placeholder="regex pattern" />
+              </label>
+              <label class="field">
+                <span>Stream index</span>
+                <input data-field="regexStream" type="number" placeholder="0" />
+              </label>
+              <label class="field field--checkbox">
+                <span>Ignore case</span>
+                <input data-field="regexIgnoreCase" type="checkbox" />
+              </label>
+            </div>
+          </div>
+
+          <div class="rule-panel" data-method="none">
+            <p class="hint">Keeps every section unchanged.</p>
+          </div>
+
+          <div class="rule-panel" data-method="all">
+            <p class="hint">Cuts everything unless you add manual ranges.</p>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <template id="rangeTemplate">
+      <div class="range-row">
+        <input data-field="start" type="text" placeholder="Start" />
+        <span class="range-sep">to</span>
+        <input data-field="end" type="text" placeholder="End" />
+        <button type="button" class="icon-button" data-action="remove">Remove</button>
+      </div>
+    </template>
+
+    <template id="speedRangeTemplate">
+      <div class="range-row">
+        <input data-field="speed" type="number" step="0.1" placeholder="Speed" />
+        <input data-field="start" type="text" placeholder="Start" />
+        <span class="range-sep">to</span>
+        <input data-field="end" type="text" placeholder="End" />
+        <button type="button" class="icon-button" data-action="remove">Remove</button>
+      </div>
+    </template>
 
     <script type="module" src="./main.js"></script>
   </body>

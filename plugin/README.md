@@ -4,10 +4,11 @@ This folder contains the **Workflow Integration plugin** that adds a dedicated A
 
 ## Highlights
 
-- **GUI-first workflow** with a guided edit builder + advanced options
-- **Full CLI coverage** via the Advanced tab and extra-args field
+- **GUI-first workflow** with a guided edit builder + advanced controls
+- **Full CLI coverage** mapped into buttons, toggles, and form fields
+- **Workflow modes** for Resolve import or export-only runs
+- **Utilities tab** for info, desc, levels, subdump, whisper, and cache
 - **Command preview** to audit exactly what will run
-- **Timeline import + render helper** buttons built in
 
 ## Requirements
 
