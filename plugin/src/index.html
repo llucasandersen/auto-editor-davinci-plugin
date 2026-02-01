@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Auto-Editor Workflow Integration</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="app__header">
+        <h1>Auto-Editor</h1>
+        <p>Select a clip and configure Auto-Editor options.</p>
+      </header>
+
+      <section class="panel">
+        <label class="field">
+          <span>Clip</span>
+          <select id="clip"></select>
+        </label>
+      </section>
+
+      <section class="panel tabs">
+        <div class="tablist" role="tablist">
+          <button id="tab-basic" class="tab tab--active" role="tab" aria-selected="true" data-tab="basic">
+            Basic
+          </button>
+          <button id="tab-advanced" class="tab" role="tab" aria-selected="false" data-tab="advanced">
+            Advanced
+          </button>
+        </div>
+
+        <div class="tabpanels">
+          <div id="panel-basic" class="tabpanel tabpanel--active" role="tabpanel">
+            <label class="field">
+              <span>Timeline name</span>
+              <input id="timeline" type="text" value="Auto-Editor Timeline" />
+            </label>
+            <label class="field">
+              <span>Edit method</span>
+              <input id="edit" type="text" placeholder="audio:threshold=0.04" />
+            </label>
+            <label class="field">
+              <span>Margin (before,after)</span>
+              <input id="margin" type="text" placeholder="0.2s,0.2s" />
+            </label>
+            <label class="field">
+              <span>When silent</span>
+              <input id="whenSilent" type="text" placeholder="cut" />
+            </label>
+            <label class="field">
+              <span>When normal</span>
+              <input id="whenNormal" type="text" placeholder="keep" />
+            </label>
+            <label class="field">
+              <span>Cut out (time ranges)</span>
+              <input id="cutOut" type="text" placeholder="0,5sec 10sec,12sec" />
+            </label>
+            <label class="field">
+              <span>Add in (time ranges)</span>
+              <input id="addIn" type="text" placeholder="0,5sec" />
+            </label>
+          </div>
+
+          <div id="panel-advanced" class="tabpanel" role="tabpanel">
+            <p class="hint">
+              Any CLI arguments are supported here. These are appended to the basic options.
+            </p>
+            <label class="field">
+              <span>Extra CLI args</span>
+              <input id="args" type="text" placeholder="--export resolve --edit motion:threshold=0.02" />
+            </label>
+            <label class="field">
+              <span>Command preview</span>
+              <input id="preview" type="text" readonly />
+            </label>
+
+            <div class="actions">
+              <button id="readTimeline" class="button button--secondary">Read Current Timeline</button>
+              <button id="renderTimeline" class="button button--secondary">Render / Export</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel controls">
+        <button id="refresh" class="button button--secondary">Refresh Clips</button>
+        <button id="copy" class="button button--secondary">Copy Command</button>
+        <button id="run" class="button">Create Timeline</button>
+        <button id="cancel" class="button button--ghost">Close</button>
+      </section>
+
+      <section class="panel status" aria-live="polite">
+        <span id="status">Ready.</span>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
