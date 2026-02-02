@@ -163,3 +163,10 @@ export const closePlugin = () => {
     workflow.closePlugin();
   }
 };
+
+export const findAutoEditorBinary = async () => {
+  if (resolveApiBridge?.findAutoEditorBinary) {
+    return resolveApiBridge.findAutoEditorBinary();
+  }
+  return "";
+};

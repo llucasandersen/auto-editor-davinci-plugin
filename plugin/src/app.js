@@ -6,6 +6,7 @@ import {
   executeCommand,
   getTempFilePath,
   closePlugin,
+  findAutoEditorBinary,
 } from "./bridge/resolveBridge.js";
 import {
   buildAutoEditorArgs,
@@ -1506,10 +1507,27 @@ const bindEvents = () => {
   });
 };
 
+const hydrateBinary = async () => {
+  if (elements.binary.value.trim()) {
+    return;
+  }
+  try {
+    const detected = await findAutoEditorBinary();
+    if (detected) {
+      elements.binary.value = detected;
+      updatePreview();
+      saveState();
+    }
+  } catch (error) {
+    // Ignore detection errors.
+  }
+};
+
 initSegmentedControls();
 setSingleRule();
 setCombineRules();
 loadState();
+hydrateBinary();
 updateExportFields();
 updateEditMode();
 updateAudioNormalizePanel();

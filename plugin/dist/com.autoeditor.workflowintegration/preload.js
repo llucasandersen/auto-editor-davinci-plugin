@@ -5,5 +5,6 @@ contextBridge.exposeInMainWorld("resolveAPI", {
   importTimeline: (filePath) => ipcRenderer.invoke("autoeditor:importTimeline", filePath),
   executeCommand: (command) => ipcRenderer.invoke("autoeditor:executeCommand", command),
   getTempFilePath: (extension) => ipcRenderer.invoke("autoeditor:getTempFilePath", extension),
+  findAutoEditorBinary: () => ipcRenderer.invoke("autoeditor:findAutoEditorBinary"),
   closePlugin: () => ipcRenderer.invoke("autoeditor:closePlugin"),
 });

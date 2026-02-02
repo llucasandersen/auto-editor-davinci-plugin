@@ -1,12 +1,14 @@
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
-const { exec } = require("child_process");
+const fs = require("fs");
+const { exec, execFile } = require("child_process");
 const WorkflowIntegration = require("./WorkflowIntegration.node");
 
 const PLUGIN_ID = "com.autoeditor.workflowintegration";
 
 let resolveObj = null;
 let mainWindow = null;
+let cachedAutoEditorPath = "";
 
 const debugLog = (message) => {
   if (!mainWindow || !mainWindow.webContents) {
@@ -101,21 +103,26 @@ const importTimeline = async (filePath) => {
 
 const executeCommand = (command) =>
   new Promise((resolve, reject) => {
-    exec(
-      command,
-      {
-        windowsHide: true,
-        maxBuffer: 20 * 1024 * 1024,
-      },
-      (error, stdout, stderr) => {
-        if (error) {
-          const message = String(stderr || error.message || "Command failed").trim();
-          reject(new Error(message || "Command failed"));
-          return;
-        }
-        resolve({ stdout, stderr });
-      },
-    );
+    const run = async () => {
+      const resolvedCommand = await resolveAutoEditorCommand(command);
+      exec(
+        resolvedCommand,
+        {
+          windowsHide: true,
+          maxBuffer: 20 * 1024 * 1024,
+          env: await buildCommandEnv(),
+        },
+        (error, stdout, stderr) => {
+          if (error) {
+            const message = String(stderr || error.message || "Command failed").trim();
+            reject(new Error(message || "Command failed"));
+            return;
+          }
+          resolve({ stdout, stderr });
+        },
+      );
+    };
+    run().catch((error) => reject(error));
   });
 
 const getTempFilePath = (extension = "fcpxml") => {
@@ -138,6 +145,126 @@ const registerEventHandlers = () => {
   ipcMain.handle("autoeditor:executeCommand", (_event, command) => executeCommand(command));
   ipcMain.handle("autoeditor:getTempFilePath", (_event, extension) => getTempFilePath(extension));
   ipcMain.handle("autoeditor:closePlugin", () => closePlugin());
+  ipcMain.handle("autoeditor:findAutoEditorBinary", () => findAutoEditorBinary());
+};
+
+const pathExists = async (value) => {
+  try {
+    await fs.promises.access(value);
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
+
+const findPythonScriptDirs = async () => {
+  const roots = [];
+  const localApp = process.env.LOCALAPPDATA;
+  const appData = process.env.APPDATA;
+  const systemDrive = process.env.SYSTEMDRIVE || "C:";
+
+  if (localApp) {
+    roots.push(path.join(localApp, "Programs", "Python"));
+  }
+  if (appData) {
+    roots.push(path.join(appData, "Python"));
+  }
+  roots.push(path.join(systemDrive, "Python"));
+
+  const scriptDirs = new Set();
+  for (const root of roots) {
+    if (!(await pathExists(root))) {
+      continue;
+    }
+    const entries = await fs.promises.readdir(root, { withFileTypes: true }).catch(() => []);
+    entries.forEach((entry) => {
+      if (!entry.isDirectory()) {
+        return;
+      }
+      if (!entry.name.toLowerCase().startsWith("python")) {
+        return;
+      }
+      scriptDirs.add(path.join(root, entry.name, "Scripts"));
+    });
+  }
+
+  if (localApp) {
+    scriptDirs.add(path.join(localApp, "pipx", "venvs", "auto-editor", "Scripts"));
+  }
+
+  return Array.from(scriptDirs);
+};
+
+const runWhere = async (extraPaths) =>
+  new Promise((resolve) => {
+    const env = {
+      ...process.env,
+      PATH: [ ...(extraPaths || []), process.env.PATH || "" ].filter(Boolean).join(";"),
+    };
+    execFile("where", ["auto-editor"], { env, windowsHide: true }, (error, stdout) => {
+      if (error) {
+        resolve("");
+        return;
+      }
+      const first = String(stdout || "")
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)[0];
+      resolve(first || "");
+    });
+  });
+
+const findAutoEditorBinary = async () => {
+  if (cachedAutoEditorPath && (await pathExists(cachedAutoEditorPath))) {
+    return cachedAutoEditorPath;
+  }
+
+  const scriptDirs = await findPythonScriptDirs();
+  let resolved = await runWhere(scriptDirs);
+
+  if (!resolved) {
+    for (const dir of scriptDirs) {
+      const candidate = path.join(dir, "auto-editor.exe");
+      if (await pathExists(candidate)) {
+        resolved = candidate;
+        break;
+      }
+    }
+  }
+
+  if (resolved) {
+    cachedAutoEditorPath = resolved;
+  }
+
+  return resolved;
+};
+
+const resolveAutoEditorCommand = async (command) => {
+  const trimmed = String(command || "").trim();
+  if (!trimmed) {
+    return trimmed;
+  }
+  const matches = /^"?auto-editor(\.exe)?"?\b/i.test(trimmed);
+  if (!matches) {
+    return trimmed;
+  }
+  const resolved = await findAutoEditorBinary();
+  if (!resolved) {
+    return trimmed;
+  }
+  return trimmed.replace(/^"?auto-editor(\.exe)?"?/i, `"${resolved}"`);
+};
+
+const buildCommandEnv = async () => {
+  const env = { ...process.env };
+  const binary = await findAutoEditorBinary();
+  if (binary) {
+    const dir = path.dirname(binary);
+    if (!env.PATH || !env.PATH.includes(dir)) {
+      env.PATH = [dir, env.PATH || ""].filter(Boolean).join(";");
+    }
+  }
+  return env;
 };
 
 const createWindow = () => {
