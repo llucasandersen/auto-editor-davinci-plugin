@@ -8,6 +8,7 @@ const srcDir = path.resolve(pluginDir, "src");
 const pluginFolderName = "com.autoeditor.workflowintegration";
 const pluginName = "Auto-Editor";
 const pluginVersion = "1.0.0";
+const pluginDescription = "Auto-Editor Workflow Integration plugin for DaVinci Resolve Studio.";
 const distDir = path.resolve(pluginDir, "dist", pluginFolderName);
 
 const ensureDir = async (dir) => {
@@ -41,25 +42,25 @@ const cleanDist = async () => {
 
 const writeManifest = async () => {
   const manifest = `<?xml version="1.0" encoding="UTF-8"?>
-<manifest>
-  <id>${pluginFolderName}</id>
-  <name>${pluginName}</name>
-  <version>${pluginVersion}</version>
-  <ui>
-    <html>index.html</html>
-    <script>main.js</script>
-  </ui>
-</manifest>
+<BlackmagicDesign>
+  <Plugin>
+    <Id>${pluginFolderName}</Id>
+    <Name>${pluginName}</Name>
+    <Version>${pluginVersion}</Version>
+    <Description>${pluginDescription}</Description>
+    <FilePath>main.js</FilePath>
+  </Plugin>
+</BlackmagicDesign>
 `;
   await fs.writeFile(path.join(distDir, "manifest.xml"), manifest, "utf8");
 };
 
 const writePackageJson = async () => {
   const packageJson = {
-    name: pluginFolderName,
+    name: pluginName,
     version: pluginVersion,
-    private: true,
-    description: "Auto-Editor Workflow Integration plugin for DaVinci Resolve Studio.",
+    description: pluginDescription,
+    main: "main.js",
   };
   await fs.writeFile(
     path.join(distDir, "package.json"),

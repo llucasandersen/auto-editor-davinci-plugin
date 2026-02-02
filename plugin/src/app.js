@@ -998,7 +998,7 @@ const refreshClips = async () => {
   setBusy(true);
   setStatus("Loading clips from the Media Pool...", "info");
   try {
-    clipEntries = listMediaPoolClips();
+    clipEntries = await listMediaPoolClips();
     elements.clip.innerHTML = "";
     clipEntries.forEach((entry) => {
       const option = document.createElement("option");
@@ -1034,7 +1034,7 @@ const getInputPaths = () => {
   if (!selected) {
     throw new Error("Please select a clip from the Media Pool.");
   }
-  return [getClipFilePath(selected.clip)];
+  return [getClipFilePath(selected)];
 };
 const handleRun = async () => {
   if (activeTab === "utilities") {
@@ -1050,7 +1050,7 @@ const handleRun = async () => {
       setStatus("Please select a clip from the list.", "error");
       return;
     }
-    clipPath = getClipFilePath(selected.clip);
+    clipPath = getClipFilePath(selected);
   } catch (error) {
     setStatus(error.message, "error");
     return;

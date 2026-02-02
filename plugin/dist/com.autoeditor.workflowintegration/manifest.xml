@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<manifest>
-  <id>com.autoeditor.workflowintegration</id>
-  <name>Auto-Editor</name>
-  <version>1.0.0</version>
-  <ui>
-    <html>index.html</html>
-    <script>main.js</script>
-  </ui>
-</manifest>
+<BlackmagicDesign>
+  <Plugin>
+    <Id>com.autoeditor.workflowintegration</Id>
+    <Name>Auto-Editor</Name>
+    <Version>1.0.0</Version>
+    <Description>Auto-Editor Workflow Integration plugin for DaVinci Resolve Studio.</Description>
+    <FilePath>main.js</FilePath>
+  </Plugin>
+</BlackmagicDesign>

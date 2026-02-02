@@ -1,3 +1,4 @@
+const resolveApiBridge = window.resolveAPI || window.resolveBridge || null;
 const resolve = window.resolve || window.davinciResolve || window.Resolve;
 const workflow = window.workflowIntegration || window.WorkflowIntegration || window.resolveWorkflow;
 
@@ -20,9 +21,11 @@ const collectClips = (folder, prefix = "") => {
   const clips = folder.GetClipList?.() || [];
   clips.forEach((clip) => {
     const name = clip.GetName?.() || "Untitled Clip";
+    const filePath = clip.GetClipProperty?.("File Path") || "";
     entries.push({
       label: `${prefix}${name}`,
       clip,
+      filePath,
     });
   });
 
@@ -36,6 +39,9 @@ const collectClips = (folder, prefix = "") => {
 };
 
 export const listMediaPoolClips = () => {
+  if (resolveApiBridge?.listMediaPoolClips) {
+    return resolveApiBridge.listMediaPoolClips();
+  }
   const resolveApi = ensureResolve();
   const projectManager = resolveApi.GetProjectManager?.();
   const project = projectManager?.GetCurrentProject?.();
@@ -50,8 +56,15 @@ export const listMediaPoolClips = () => {
   return collectClips(rootFolder);
 };
 
-export const getClipFilePath = (clip) => {
-  const filePath = clip.GetClipProperty?.("File Path");
+export const getClipFilePath = (entry) => {
+  if (entry?.filePath) {
+    return entry.filePath;
+  }
+  if (resolveApiBridge?.getClipFilePath) {
+    return resolveApiBridge.getClipFilePath(entry);
+  }
+  const clip = entry?.clip || entry;
+  const filePath = clip?.GetClipProperty?.("File Path");
   if (!filePath) {
     throw new Error("Unable to determine clip file path.");
   }
@@ -59,6 +72,9 @@ export const getClipFilePath = (clip) => {
 };
 
 export const importTimeline = (filePath) => {
+  if (resolveApiBridge?.importTimeline) {
+    return resolveApiBridge.importTimeline(filePath);
+  }
   const resolveApi = ensureResolve();
   const projectManager = resolveApi.GetProjectManager?.();
   const project = projectManager?.GetCurrentProject?.();
@@ -73,6 +89,9 @@ export const importTimeline = (filePath) => {
 };
 
 export const getCurrentTimelineInfo = () => {
+  if (resolveApiBridge?.getCurrentTimelineInfo) {
+    return resolveApiBridge.getCurrentTimelineInfo();
+  }
   const resolveApi = ensureResolve();
   const projectManager = resolveApi.GetProjectManager?.();
   const project = projectManager?.GetCurrentProject?.();
@@ -88,6 +107,9 @@ export const getCurrentTimelineInfo = () => {
 };
 
 export const renderCurrentTimeline = () => {
+  if (resolveApiBridge?.renderCurrentTimeline) {
+    return resolveApiBridge.renderCurrentTimeline();
+  }
   const resolveApi = ensureResolve();
   const projectManager = resolveApi.GetProjectManager?.();
   const project = projectManager?.GetCurrentProject?.();
@@ -102,6 +124,9 @@ export const renderCurrentTimeline = () => {
 };
 
 export const executeCommand = async (command) => {
+  if (resolveApiBridge?.executeCommand) {
+    return resolveApiBridge.executeCommand(command);
+  }
   const bridge = ensureWorkflow();
   if (typeof bridge.executeCommand === "function") {
     return bridge.executeCommand(command);
@@ -116,6 +141,9 @@ export const executeCommand = async (command) => {
 };
 
 export const getTempFilePath = async (extension = "fcpxml") => {
+  if (resolveApiBridge?.getTempFilePath) {
+    return resolveApiBridge.getTempFilePath(extension);
+  }
   if (workflow?.getTemporaryPath) {
     const base = workflow.getTemporaryPath();
     return `${base.replace(/\\$/g, "")}/auto-editor-${Date.now()}.${extension}`;
@@ -128,6 +156,9 @@ export const getTempFilePath = async (extension = "fcpxml") => {
 };
 
 export const closePlugin = () => {
+  if (resolveApiBridge?.closePlugin) {
+    return resolveApiBridge.closePlugin();
+  }
   if (workflow?.closePlugin) {
     workflow.closePlugin();
   }
